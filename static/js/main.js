@@ -136,9 +136,36 @@ function setupEventListeners() {
     
     // Copy Tweet
     elements.copyTweetBtn.addEventListener('click', copyTweetToClipboard);
-    
+
     // Post to X
     elements.postTweetBtn.addEventListener('click', postTweetToX);
+
+    // Reset search button in empty state
+    const resetSearchBtn = document.getElementById('reset-search-btn');
+    if (resetSearchBtn) {
+        resetSearchBtn.addEventListener('click', () => {
+            elements.searchInput.value = '';
+            currentSearch = '';
+            elements.clearSearch.style.display = 'none';
+            
+            // Reset category filter tab back to 'All'
+            const allTabBtn = Array.from(elements.tabBtns).find(btn => btn.dataset.type === 'all');
+            if (allTabBtn) {
+                elements.tabBtns.forEach(b => b.classList.remove('active'));
+                allTabBtn.classList.add('active');
+                currentFilter = 'all';
+            }
+            
+            applyFiltersAndSearch();
+        });
+    }
+    
+    // Global keydown events (Escape to close modal)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && elements.tweetModal.style.display === 'flex') {
+            closeModal();
+        }
+    });
 }
 
 // Fetch notes from Flask API
@@ -161,8 +188,12 @@ async function fetchNotes(forceRefresh = false) {
             updateStatsDashboard();
             applyFiltersAndSearch();
             
+            const warningElem = document.getElementById('offline-warning');
             if (data.warning) {
                 showToast(data.warning, 'warning');
+                if (warningElem) warningElem.style.display = 'inline-block';
+            } else {
+                if (warningElem) warningElem.style.display = 'none';
             }
         } else {
             throw new Error(data.error || 'Failed to fetch release notes.');
@@ -262,7 +293,7 @@ function renderNotesGrid(notes) {
                 ${note.content_html}
             </div>
             <div class="note-card-footer">
-                <button class="btn btn-secondary copy-card-btn" onclick="copyCardContent('${note.id}')">
+                <button class="btn btn-secondary copy-card-btn" onclick="copyCardContent('${note.id}', this)">
                     <i class="fa-regular fa-copy"></i> Copy Content
                 </button>
                 <button class="btn tweet-btn" onclick="openTweetComposer('${note.id}')">
@@ -276,7 +307,10 @@ function renderNotesGrid(notes) {
         copyLinkBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             navigator.clipboard.writeText(note.link)
-                .then(() => showToast('Documentation link copied!'))
+                .then(() => {
+                    showToast('Documentation link copied!');
+                    showSuccessFeedback(copyLinkBtn, 'fa-solid fa-link');
+                })
                 .catch(() => showToast('Failed to copy link', 'error'));
         });
         
@@ -323,6 +357,13 @@ window.openTweetComposer = function(noteId) {
     // Display Modal
     elements.tweetModal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Disable background scrolling
+    
+    // Auto-focus textarea and place cursor at the end
+    setTimeout(() => {
+        elements.tweetTextarea.focus();
+        const valLen = elements.tweetTextarea.value.length;
+        elements.tweetTextarea.setSelectionRange(valLen, valLen);
+    }, 150);
 };
 
 function closeModal() {
@@ -445,7 +486,10 @@ function formatTweetPreview(text) {
 function copyTweetToClipboard() {
     const text = elements.tweetTextarea.value;
     navigator.clipboard.writeText(text)
-        .then(() => showToast('Tweet text copied to clipboard!'))
+        .then(() => {
+            showToast('Tweet text copied to clipboard!');
+            showSuccessFeedback(elements.copyTweetBtn, 'fa-regular fa-copy');
+        })
         .catch(() => showToast('Failed to copy', 'error'));
 }
 
@@ -489,13 +533,41 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 
+// Local success feedback on buttons
+function showSuccessFeedback(button, originalIconClass) {
+    const icon = button.querySelector('i');
+    if (!icon) return;
+    
+    const originalBorder = button.style.borderColor;
+    const originalColor = button.style.color;
+    
+    // Apply success styling
+    icon.className = 'fa-solid fa-circle-check';
+    icon.style.color = 'var(--color-success)';
+    button.style.borderColor = 'var(--color-success)';
+    button.style.color = 'var(--color-success)';
+    
+    // Revert styling after 2 seconds
+    setTimeout(() => {
+        icon.className = originalIconClass;
+        icon.style.color = '';
+        button.style.borderColor = originalBorder;
+        button.style.color = originalColor;
+    }, 2000);
+}
+
 // Copy card content helper
-window.copyCardContent = function(noteId) {
+window.copyCardContent = function(noteId, button) {
     const note = allUpdates.find(u => u.id === noteId);
     if (!note) return;
     
     navigator.clipboard.writeText(note.content_text)
-        .then(() => showToast('Update copied to clipboard!'))
+        .then(() => {
+            showToast('Update copied to clipboard!');
+            if (button) {
+                showSuccessFeedback(button, 'fa-regular fa-copy');
+            }
+        })
         .catch(() => showToast('Failed to copy', 'error'));
 };
 

@@ -33,7 +33,12 @@
                 </button>
                 <div class="last-updated" id="last-updated-container">
                     <span class="label">Last Fetched:</span>
-                    <span class="value" id="last-updated-val">Loading...</span>
+                    <span class="value-wrapper" style="display: flex; align-items: center; gap: 6px;">
+                        <span class="value" id="last-updated-val">Loading...</span>
+                        <span id="offline-warning" style="display: none; color: var(--color-warning);" title="Offline: Failed to refresh, showing cached data">
+                            <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                        </span>
+                    </span>
                 </div>
                 <button id="export-csv-btn" class="btn btn-secondary" title="Export Release Notes to CSV">
                     <i class="fa-solid fa-file-csv"></i>
@@ -116,6 +121,9 @@
                 <div class="empty-icon"><i class="fa-solid fa-face-frown"></i></div>
                 <h3>No updates found</h3>
                 <p>Try adjusting your search query or filters.</p>
+                <button id="reset-search-btn" class="btn btn-secondary btn-sm" style="margin-top: 12px;">
+                    <i class="fa-solid fa-xmark"></i> Clear Search & Filters
+                </button>
             </div>
 
             <!-- Release Notes Grid -->

@@ -1205,3 +1205,36 @@ body.light-theme .modal-close:hover {
     color: #0f172a;
 }
 
+/* Responsive Compacting & Scroll Traps Fix */
+@media (max-width: 580px) {
+    .header-actions {
+        gap: 8px;
+    }
+    .last-updated {
+        display: none;
+    }
+    .header-actions .btn span {
+        display: none;
+    }
+    .header-actions .btn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 767px) {
+    .note-preview-side {
+        max-height: none;
+        overflow-y: visible;
+    }
+    .modal-content {
+        max-height: 95vh;
+    }
+}
+
+
