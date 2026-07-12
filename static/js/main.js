@@ -11,6 +11,8 @@ const elements = {
     refreshBtn: document.getElementById('refresh-btn'),
     refreshIcon: document.getElementById('refresh-icon'),
     exportCsvBtn: document.getElementById('export-csv-btn'),
+    themeToggleBtn: document.getElementById('theme-toggle-btn'),
+    themeIcon: document.getElementById('theme-icon'),
     lastUpdatedVal: document.getElementById('last-updated-val'),
     
     // Stats
@@ -63,12 +65,16 @@ if (elements.progressCircle) {
 
 // Initial initialization
 document.addEventListener('DOMContentLoaded', () => {
+    initializeTheme();
     fetchNotes(false);
     setupEventListeners();
 });
 
 // Setup Event Listeners
 function setupEventListeners() {
+    // Theme Toggle
+    elements.themeToggleBtn.addEventListener('click', toggleTheme);
+
     // Refresh buttons
     elements.refreshBtn.addEventListener('click', () => fetchNotes(true));
     elements.retryBtn.addEventListener('click', () => fetchNotes(true));
@@ -552,4 +558,52 @@ function exportToCSV() {
     
     showToast('Exported CSV successfully!');
 }
+
+// Initialize theme on load
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        if (elements.themeIcon) {
+            elements.themeIcon.className = 'fa-solid fa-moon';
+        }
+        if (elements.themeToggleBtn) {
+            elements.themeToggleBtn.title = 'Switch to Dark Theme';
+        }
+    } else {
+        document.body.classList.remove('light-theme');
+        if (elements.themeIcon) {
+            elements.themeIcon.className = 'fa-solid fa-sun';
+        }
+        if (elements.themeToggleBtn) {
+            elements.themeToggleBtn.title = 'Switch to Light Theme';
+        }
+    }
+}
+
+// Toggle light/dark theme
+function toggleTheme() {
+    if (document.body.classList.contains('light-theme')) {
+        document.body.classList.remove('light-theme');
+        if (elements.themeIcon) {
+            elements.themeIcon.className = 'fa-solid fa-sun';
+        }
+        if (elements.themeToggleBtn) {
+            elements.themeToggleBtn.title = 'Switch to Light Theme';
+        }
+        localStorage.setItem('theme', 'dark');
+        showToast('Dark theme enabled!');
+    } else {
+        document.body.classList.add('light-theme');
+        if (elements.themeIcon) {
+            elements.themeIcon.className = 'fa-solid fa-moon';
+        }
+        if (elements.themeToggleBtn) {
+            elements.themeToggleBtn.title = 'Switch to Dark Theme';
+        }
+        localStorage.setItem('theme', 'light');
+        showToast('Light theme enabled!');
+    }
+}
+
 

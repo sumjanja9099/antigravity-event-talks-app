@@ -1071,3 +1071,137 @@ h1, h2, h3, h4, .logo-text h1 {
     color: var(--text-muted);
     font-size: 12px;
 }
+
+/* Icon Button styling */
+.btn-icon {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Light Theme Overrides */
+body.light-theme {
+    --bg-color: #f1f5f9;
+    --surface-color: rgba(255, 255, 255, 0.75);
+    --surface-card: rgba(255, 255, 255, 0.55);
+    --surface-card-hover: rgba(255, 255, 255, 0.95);
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-color-hover: rgba(15, 23, 42, 0.18);
+    
+    --text-primary: #0f172a; /* Slate 900 */
+    --text-secondary: #334155; /* Slate 700 */
+    --text-muted: #64748b; /* Slate 500 */
+    
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 8px 30px rgba(15, 23, 42, 0.06);
+    --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.1);
+    
+    background-image: 
+        radial-gradient(at 10% 10%, rgba(66, 133, 244, 0.06) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
+}
+
+body.light-theme .logo-text h1 {
+    background: linear-gradient(to right, #0f172a, #475569);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme #search-input {
+    background: rgba(255, 255, 255, 0.85);
+    color: #0f172a;
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+body.light-theme #search-input:focus {
+    background: #ffffff;
+    border-color: var(--color-primary);
+}
+
+body.light-theme .tab-btn {
+    color: #475569;
+}
+
+body.light-theme .tab-btn:hover {
+    color: #0f172a;
+    background: rgba(15, 23, 42, 0.04);
+}
+
+body.light-theme .tab-btn.active {
+    background: rgba(66, 133, 244, 0.1);
+    color: #4285f4;
+    border-color: rgba(66, 133, 244, 0.25);
+}
+
+body.light-theme .stat-icon.all {
+    background: rgba(15, 23, 42, 0.05);
+    color: #475569;
+}
+
+body.light-theme .note-body code {
+    background: rgba(15, 23, 42, 0.05);
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+body.light-theme .note-card-footer {
+    border-top-color: rgba(15, 23, 42, 0.05);
+}
+
+body.light-theme .modal-content {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+}
+
+body.light-theme .modal-header {
+    border-bottom-color: rgba(15, 23, 42, 0.05);
+}
+
+body.light-theme .note-preview-side {
+    background: rgba(15, 23, 42, 0.02);
+    border-color: rgba(15, 23, 42, 0.04);
+}
+
+body.light-theme .note-original-content h3 {
+    color: #64748b;
+}
+
+body.light-theme .original-html {
+    color: #334155;
+}
+
+body.light-theme .original-html code {
+    background: rgba(15, 23, 42, 0.05);
+    color: #0f172a;
+}
+
+body.light-theme .textarea-wrapper {
+    background: rgba(15, 23, 42, 0.02);
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme #tweet-textarea {
+    color: #0f172a;
+}
+
+body.light-theme .composer-actions {
+    border-top-color: rgba(15, 23, 42, 0.05);
+}
+
+body.light-theme .modal-close {
+    background: rgba(15, 23, 42, 0.05);
+    color: #64748b;
+}
+
+body.light-theme .modal-close:hover {
+    background: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+}
+
