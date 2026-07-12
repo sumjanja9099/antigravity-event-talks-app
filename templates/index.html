@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Explorer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-database animate-pulse"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>BigQuery</h1>
+                    <span>Release Notes Explorer</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="last-updated" id="last-updated-container">
+                    <span class="label">Last Fetched:</span>
+                    <span class="value" id="last-updated-val">Loading...</span>
+                </div>
+                <button id="refresh-btn" class="btn btn-primary" title="Refresh Release Notes">
+                    <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Dashboard -->
+        <section class="stats-dashboard">
+            <div class="stat-card" data-filter="all">
+                <div class="stat-icon all"><i class="fa-solid fa-list"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-total">0</span>
+                    <span class="stat-label">Total Updates</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="feature">
+                <div class="stat-icon feature"><i class="fa-solid fa-star"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-features">0</span>
+                    <span class="stat-label">Features</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="change">
+                <div class="stat-icon change"><i class="fa-solid fa-sliders"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-changes">0</span>
+                    <span class="stat-label">Changes</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="deprecated">
+                <div class="stat-icon deprecated"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-deprecated">0</span>
+                    <span class="stat-label">Deprecated</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls Section -->
+        <section class="controls-section">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search release notes by keywords (e.g. metadata, ODBC, SQL)..." autocomplete="off">
+                <button id="clear-search" class="clear-btn" style="display: none;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-type="all">All</button>
+                <button class="tab-btn" data-type="Feature">Features</button>
+                <button class="tab-btn" data-type="Change">Changes</button>
+                <button class="tab-btn" data-type="Deprecated">Deprecated</button>
+                <button class="tab-btn" data-type="Info">Info</button>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Loading State -->
+            <div class="loading-state" id="loading-state">
+                <div class="spinner"></div>
+                <p>Fetching the latest release notes from Google Cloud...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state" id="error-state" style="display: none;">
+                <div class="error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h3>Failed to load release notes</h3>
+                <p id="error-msg">Something went wrong while fetching release notes.</p>
+                <button id="retry-btn" class="btn btn-secondary">Retry Fetching</button>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-icon"><i class="fa-solid fa-face-frown"></i></div>
+                <h3>No updates found</h3>
+                <p>Try adjusting your search query or filters.</p>
+            </div>
+
+            <!-- Release Notes Grid -->
+            <div class="notes-grid" id="notes-grid" style="display: none;">
+                <!-- Dynamically filled with JS -->
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer-bar">
+            <p>BigQuery Release Notes Explorer &bull; Made with Flask, HTML, CSS, & JS</p>
+        </footer>
+    </div>
+
+    <!-- Tweet Composer Modal -->
+    <div class="modal-overlay" id="tweet-modal" style="display: none;">
+        <div class="modal-content">
+            <button class="modal-close" id="close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="modal-header">
+                <h2><i class="fa-brands fa-x-twitter"></i> Tweet Composer</h2>
+                <p>Customize your tweet about this BigQuery release note before sharing.</p>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Left panel: Original note info -->
+                <div class="note-preview-side">
+                    <div class="preview-badge-row">
+                        <span class="update-badge" id="modal-note-type">Feature</span>
+                        <span class="note-date" id="modal-note-date">July 09, 2026</span>
+                    </div>
+                    <div class="note-original-content">
+                        <h3>Original Update</h3>
+                        <div id="modal-note-html" class="original-html">
+                            <!-- HTML content goes here -->
+                        </div>
+                        <a href="#" id="modal-note-link" target="_blank" class="source-link">
+                            View on Google Cloud <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Right panel: Tweet Editor & Live Preview -->
+                <div class="tweet-editor-side">
+                    <div class="editor-section">
+                        <label for="tweet-textarea">Compose Tweet</label>
+                        <div class="textarea-wrapper">
+                            <textarea id="tweet-textarea" rows="6" placeholder="What's happening?"></textarea>
+                        </div>
+                        
+                        <div class="editor-footer">
+                            <div class="counter-container">
+                                <svg class="progress-ring" width="30" height="30">
+                                    <circle class="progress-ring__circle-bg" stroke="#1f2937" stroke-width="3" fill="transparent" r="12" cx="15" cy="15"/>
+                                    <circle class="progress-ring__circle" id="progress-circle" stroke="#10b981" stroke-width="3" fill="transparent" r="12" cx="15" cy="15"/>
+                                </svg>
+                                <span id="char-counter" class="char-counter">280</span>
+                            </div>
+                            <button id="reset-tweet-btn" class="btn btn-text" title="Reset tweet to default text">
+                                <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- X.com (Twitter) Mock Preview Card -->
+                    <div class="tweet-mock-preview">
+                        <span class="preview-label">Live Preview on X</span>
+                        <div class="mock-tweet">
+                            <div class="mock-avatar">
+                                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60" alt="Avatar">
+                            </div>
+                            <div class="mock-content">
+                                <div class="mock-user-info">
+                                    <span class="mock-name">BigQuery News</span>
+                                    <span class="mock-handle">@BigQueryNotes</span>
+                                    <span class="mock-dot">&bull;</span>
+                                    <span class="mock-time">Just now</span>
+                                </div>
+                                <div class="mock-tweet-text" id="mock-tweet-text">
+                                    <!-- Dynamic tweet text -->
+                                </div>
+                                <div class="mock-card-preview" id="mock-card">
+                                    <div class="mock-card-image">
+                                        <div class="mock-image-placeholder">
+                                            <i class="fa-solid fa-database"></i>
+                                            <span>Google Cloud BigQuery</span>
+                                        </div>
+                                    </div>
+                                    <div class="mock-card-info">
+                                        <span class="mock-card-domain">cloud.google.com</span>
+                                        <span class="mock-card-title">BigQuery - Release notes | Google Cloud</span>
+                                        <span class="mock-card-desc">Google Cloud BigQuery release notes feed and documentation updates.</span>
+                                    </div>
+                                </div>
+                                <div class="mock-actions">
+                                    <span><i class="fa-regular fa-comment"></i> 0</span>
+                                    <span><i class="fa-solid fa-retweet"></i> 0</span>
+                                    <span><i class="fa-regular fa-heart"></i> 0</span>
+                                    <span><i class="fa-regular fa-bookmark"></i> 0</span>
+                                    <span><i class="fa-solid fa-share-nodes"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="composer-actions">
+                        <button id="copy-tweet-btn" class="btn btn-secondary">
+                            <i class="fa-regular fa-copy"></i> Copy Text
+                        </button>
+                        <button id="post-tweet-btn" class="btn btn-primary btn-tweet">
+                            <i class="fa-brands fa-x-twitter"></i> Post to X
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast" style="display: none;">
+        <i class="fa-solid fa-check-circle toast-icon"></i>
+        <span id="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
