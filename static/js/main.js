@@ -10,6 +10,7 @@ let activeUpdate = null;
 const elements = {
     refreshBtn: document.getElementById('refresh-btn'),
     refreshIcon: document.getElementById('refresh-icon'),
+    exportCsvBtn: document.getElementById('export-csv-btn'),
     lastUpdatedVal: document.getElementById('last-updated-val'),
     
     // Stats
@@ -71,6 +72,9 @@ function setupEventListeners() {
     // Refresh buttons
     elements.refreshBtn.addEventListener('click', () => fetchNotes(true));
     elements.retryBtn.addEventListener('click', () => fetchNotes(true));
+    
+    // Export CSV
+    elements.exportCsvBtn.addEventListener('click', exportToCSV);
     
     // Search input
     elements.searchInput.addEventListener('input', (e) => {
@@ -240,8 +244,8 @@ function renderNotesGrid(notes) {
                     <span class="note-date">${note.date}</span>
                 </div>
                 <div class="note-card-actions">
-                    <button class="btn btn-secondary btn-sm copy-raw-btn" title="Copy raw update content">
-                        <i class="fa-regular fa-copy"></i>
+                    <button class="btn btn-secondary btn-sm copy-link-btn" title="Copy documentation link">
+                        <i class="fa-solid fa-link"></i>
                     </button>
                     <a href="${note.link}" target="_blank" class="btn btn-secondary btn-sm" title="View original documentation">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -252,19 +256,22 @@ function renderNotesGrid(notes) {
                 ${note.content_html}
             </div>
             <div class="note-card-footer">
+                <button class="btn btn-secondary copy-card-btn" onclick="copyCardContent('${note.id}')">
+                    <i class="fa-regular fa-copy"></i> Copy Content
+                </button>
                 <button class="btn tweet-btn" onclick="openTweetComposer('${note.id}')">
                     <i class="fa-brands fa-x-twitter"></i> Tweet Update
                 </button>
             </div>
         `;
         
-        // Copy raw text handler
-        const copyRawBtn = card.querySelector('.copy-raw-btn');
-        copyRawBtn.addEventListener('click', (e) => {
+        // Copy documentation link handler
+        const copyLinkBtn = card.querySelector('.copy-link-btn');
+        copyLinkBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            navigator.clipboard.writeText(note.content_text)
-                .then(() => showToast('Update copied to clipboard!'))
-                .catch(() => showToast('Failed to copy', 'error'));
+            navigator.clipboard.writeText(note.link)
+                .then(() => showToast('Documentation link copied!'))
+                .catch(() => showToast('Failed to copy link', 'error'));
         });
         
         elements.notesGrid.appendChild(card);
@@ -475,3 +482,74 @@ function showToast(message, type = 'success') {
         elements.toast.style.display = 'none';
     }, 4000);
 }
+
+// Copy card content helper
+window.copyCardContent = function(noteId) {
+    const note = allUpdates.find(u => u.id === noteId);
+    if (!note) return;
+    
+    navigator.clipboard.writeText(note.content_text)
+        .then(() => showToast('Update copied to clipboard!'))
+        .catch(() => showToast('Failed to copy', 'error'));
+};
+
+// Export currently filtered release notes to CSV
+function exportToCSV() {
+    let filtered = allUpdates;
+    
+    // Apply Category Filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(u => u.type === currentFilter);
+    }
+    
+    // Apply Search Filter
+    if (currentSearch) {
+        filtered = filtered.filter(u => {
+            return u.content_text.toLowerCase().includes(currentSearch) || 
+                   u.type.toLowerCase().includes(currentSearch) ||
+                   u.date.toLowerCase().includes(currentSearch);
+        });
+    }
+    
+    if (filtered.length === 0) {
+        showToast('No data to export!', 'error');
+        return;
+    }
+    
+    // CSV headers
+    const headers = ['ID', 'Date', 'Type', 'Content Text', 'Documentation Link'];
+    
+    // Map updates to rows
+    const rows = filtered.map(update => [
+        update.id,
+        update.date,
+        update.type,
+        `"${update.content_text.replace(/"/g, '""')}"`,
+        update.link
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Create Blob and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Set filename
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filterName = currentFilter === 'all' ? 'all' : currentFilter.toLowerCase();
+    link.setAttribute('href', url);
+    link.setAttribute('download', `bq_release_notes_${filterName}_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Exported CSV successfully!');
+}
+

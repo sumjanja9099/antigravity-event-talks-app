@@ -583,9 +583,17 @@ h1, h2, h3, h4, .logo-text h1 {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    gap: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding-top: 14px;
 }
+
+.copy-card-btn {
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 20px;
+}
+
 
 .tweet-btn {
     background: #1d9bf0;
